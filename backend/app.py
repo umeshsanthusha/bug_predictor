@@ -1,31 +1,31 @@
+"""
+CrossBugSense — Flask API backend
+Serves prediction endpoints for the React (Vite) frontend.
+Auth is Supabase Auth: the frontend sends its Supabase access token and we
+verify it here (see auth.py). Accounts and chats live in Supabase.
+Run: python app.py  (listens on http://localhost:5000)
+"""
 import os
 import re
-import json
 import joblib
-import numpy as np
 import pandas as pd
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+
+from auth import require_supabase_user
 
 app = Flask(__name__)
+# Allow the Vite dev server to call the API directly (proxy also configured in vite.config.ts)
+CORS(app, resources={r'/api/*': {'origins': ['http://localhost:5173', 'http://127.0.0.1:5173']}})
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+MODELS_DIR = os.path.join(BASE_DIR, 'models')
 
 FEATURES = [
     'WMC','DIT','NOC','CBO','RFC','LCOM','Ca','Ce','NPM','LOC',
     'DAM','MOA','MFA','CAM','IC','CBM','AMC','MCC','ACC',
     'Intensity','ANA','ARL','ACPD','ACM'
 ]
-
-MODELS_DIR = os.path.join(os.path.dirname(__file__), 'models')
-
-def load_models():
-    models = {}
-    model_names = ['random_forest', 'knn', 'logistic_regression', 'naive_bayes', 'xgboost']
-    for name in model_names:
-        path = os.path.join(MODELS_DIR, f'{name}.pkl')
-        if os.path.exists(path):
-            models[name] = joblib.load(path)
-    return models
-
-LOADED_MODELS = load_models()
 
 MODEL_DISPLAY = {
     'random_forest': 'Random Forest',
@@ -42,6 +42,16 @@ MODEL_ACCURACY = {
     'naive_bayes': 92.59,
     'xgboost': 91.36
 }
+
+def load_models():
+    models = {}
+    for name in MODEL_DISPLAY:
+        path = os.path.join(MODELS_DIR, f'{name}.pkl')
+        if os.path.exists(path):
+            models[name] = joblib.load(path)
+    return models
+
+LOADED_MODELS = load_models()
 
 def extract_metrics_from_code(code: str, language: str) -> dict:
     """
@@ -121,11 +131,18 @@ def detect_language(filename: str) -> str:
         return 'javascript'
     return 'unknown'
 
-@app.route('/')
-def index():
-    return render_template('index.html', models=MODEL_DISPLAY, accuracies=MODEL_ACCURACY)
+@app.route('/api/models', methods=['GET'])
+@require_supabase_user
+def list_models():
+    data = [
+        {'key': key, 'name': name, 'accuracy': MODEL_ACCURACY[key]}
+        for key, name in MODEL_DISPLAY.items()
+        if key in LOADED_MODELS
+    ]
+    return jsonify({'models': data})
 
-@app.route('/predict', methods=['POST'])
+@app.route('/api/predict', methods=['POST'])
+@require_supabase_user
 def predict():
     if 'file1' not in request.files or 'file2' not in request.files:
         return jsonify({'error': 'Please upload exactly 2 files.'}), 400

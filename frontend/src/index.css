@@ -1,0 +1,353 @@
+@import url('https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
+@import 'tailwindcss';
+
+/* ─────────────────────────────────────────────────────────────
+   CrossBugSense · "Signal Instrument" theme
+   Beam = indigo→teal duotone (the scan light), reserved for
+   primary actions, gauges, hero words and the brand beacon.
+   Buggy = coral hazard, Clean = mint/green.
+   ───────────────────────────────────────────────────────────── */
+:root,
+[data-theme='light'] {
+  --bg: #f3f5fc;
+  --panel: #ffffff;
+  --card: #e8ecf8;
+  --line: #d5dcef;
+  --accent: #4d42dc;
+  --on-accent: #ffffff;
+  --buggy: #d3395b;
+  --good: #0a9a6c;
+  --warn: #a86a0c;
+  --ink: #141830;
+  --muted: #5c6484;
+
+  /* beam duotone + glow */
+  --beam-a: #4d42dc;
+  --beam-b: #0e9b8a;
+  --beam-ink: #ffffff;
+  --glow-accent: rgba(77, 66, 220, 0.38);
+  --glow-soft: rgba(14, 155, 138, 0.22);
+
+  /* ambience */
+  --grid: rgba(77, 66, 220, 0.06);
+  --aurora-1: rgba(88, 78, 255, 0.13);
+  --aurora-2: rgba(18, 178, 156, 0.11);
+  --plate-shadow: 0 1px 2px rgba(20, 24, 48, 0.05), 0 14px 30px -20px rgba(20, 24, 48, 0.22);
+  --plate-hi: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  --header-shadow: 0 8px 24px -20px rgba(20, 24, 48, 0.45);
+  --slab-shadow: 18px 0 44px -28px rgba(20, 24, 48, 0.35);
+  --scroll-thumb: rgba(20, 24, 48, 0.22);
+  --scroll-thumb-hover: rgba(77, 66, 220, 0.5);
+  color-scheme: light;
+}
+
+[data-theme='dark'] {
+  --bg: #0a0d1a;
+  --panel: #111629;
+  --card: #1a2138;
+  --line: #2a3354;
+  --accent: #918bff;
+  --on-accent: #0a0d1a;
+  --buggy: #ff6584;
+  --good: #3fe0a8;
+  --warn: #f0b450;
+  --ink: #e8ebfb;
+  --muted: #8a93ba;
+
+  --beam-a: #7f74ff;
+  --beam-b: #2fd6b8;
+  --beam-ink: #0a0d1a;
+  --glow-accent: rgba(127, 116, 255, 0.45);
+  --glow-soft: rgba(47, 214, 184, 0.28);
+
+  --grid: rgba(130, 122, 255, 0.055);
+  --aurora-1: rgba(93, 82, 255, 0.17);
+  --aurora-2: rgba(28, 190, 164, 0.1);
+  --plate-shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 18px 40px -24px rgba(2, 4, 14, 0.8);
+  --plate-hi: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  --header-shadow: 0 10px 30px -24px rgba(0, 0, 0, 0.9);
+  --slab-shadow: 18px 0 44px -24px rgba(0, 0, 0, 0.7);
+  --scroll-thumb: rgba(232, 235, 251, 0.16);
+  --scroll-thumb-hover: rgba(145, 139, 255, 0.55);
+  color-scheme: dark;
+}
+
+@theme {
+  --color-bg: var(--bg);
+  --color-panel: var(--panel);
+  --color-card: var(--card);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-on-accent: var(--on-accent);
+  --color-accent-2: var(--buggy);
+  --color-good: var(--good);
+  --color-warn: var(--warn);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+
+  --font-display: 'Archivo', sans-serif;
+  --font-body: 'IBM Plex Sans', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  min-height: 100vh;
+  overflow-x: hidden;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Faint measurement grid backdrop, tuned per theme */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 44px 44px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Aurora: the instrument is lit from behind — two soft beam glows
+   anchored to the top corners, drifting very slowly */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(56% 44% at 16% -8%, var(--aurora-1), transparent 70%),
+    radial-gradient(50% 42% at 90% 2%, var(--aurora-2), transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+  transition: background 0.3s ease;
+  animation: aurora-drift 26s ease-in-out infinite alternate;
+}
+
+@keyframes aurora-drift {
+  from {
+    transform: translate3d(-1.2%, 0, 0) scale(1);
+  }
+  to {
+    transform: translate3d(1.2%, 0.8%, 0) scale(1.04);
+  }
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ─── Beam utilities (the single bold device) ─── */
+.beam-bg {
+  background-image: linear-gradient(118deg, var(--beam-a) 0%, var(--beam-b) 130%);
+  color: var(--beam-ink);
+}
+
+.beam-text {
+  background-image: linear-gradient(100deg, var(--beam-a) 20%, var(--beam-b) 90%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.beam-btn {
+  background-image: linear-gradient(118deg, var(--beam-a) 0%, var(--beam-b) 130%);
+  color: var(--beam-ink);
+  box-shadow:
+    0 10px 28px -12px var(--glow-accent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  transition: filter 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+}
+
+.beam-btn:hover:not(:disabled) {
+  filter: brightness(1.09) saturate(1.05);
+}
+
+.beam-btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+/* Small beam chip (active model, active theme segment) */
+.beam-chip {
+  background-image: linear-gradient(118deg, var(--beam-a) 0%, var(--beam-b) 140%);
+  color: var(--beam-ink);
+  box-shadow: 0 3px 12px -5px var(--glow-accent);
+}
+
+/* Brand beacon: glowing dot with an emitted ring */
+.beacon {
+  position: relative;
+  background-image: linear-gradient(118deg, var(--beam-a), var(--beam-b));
+  box-shadow: 0 0 10px var(--glow-accent);
+}
+
+.beacon::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border: 1px solid var(--accent);
+  border-radius: 9999px;
+  opacity: 0;
+  animation: beacon-ring 2.6s ease-out infinite;
+}
+
+@keyframes beacon-ring {
+  0% {
+    transform: scale(0.55);
+    opacity: 0.8;
+  }
+  70%,
+  100% {
+    transform: scale(1.9);
+    opacity: 0;
+  }
+}
+
+/* Plate elevation: every raised surface catches light */
+.rounded-lg.bg-panel,
+.rounded-xl.bg-panel,
+.rounded-2xl.bg-panel {
+  box-shadow: var(--plate-shadow), var(--plate-hi);
+}
+
+.lift {
+  box-shadow: var(--plate-shadow), var(--plate-hi);
+}
+
+/* Sticky translucent headers */
+.bg-panel\/95 {
+  box-shadow: var(--header-shadow);
+}
+
+/* Gauge fills glow with their verdict color */
+.gauge-buggy {
+  box-shadow: 0 0 12px color-mix(in srgb, var(--buggy) 55%, transparent);
+}
+
+.gauge-clean {
+  box-shadow: 0 0 12px color-mix(in srgb, var(--good) 50%, transparent);
+}
+
+/* Buggy verdict pill: faint hazard striping */
+.pill-hazard {
+  background-image: repeating-linear-gradient(
+    -45deg,
+    transparent 0 6px,
+    color-mix(in srgb, var(--buggy) 12%, transparent) 6px 12px
+  );
+}
+
+/* Focused dropzone surface */
+.dz-hot {
+  box-shadow:
+    inset 0 0 0 1px var(--accent),
+    0 0 36px -10px var(--glow-accent);
+}
+
+/* Custom scrollbars, themed via CSS variables */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scroll-thumb) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--scroll-thumb);
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background-clip: padding-box;
+  transition: background-color 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover,
+::-webkit-scrollbar-thumb:active {
+  background: var(--scroll-thumb-hover);
+  border: 3px solid transparent;
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+.load-dot {
+  animation: blink-dot 1.2s infinite;
+}
+
+@keyframes blink-dot {
+  0%,
+  100% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.load-dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.load-dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.rise-in {
+  animation: rise-in 0.5s ease both;
+}
+
+/* Sample-reading bars on the landing page grow to their value once */
+.bar-grow {
+  transform-origin: left;
+  animation: bar-grow 1.1s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes bar-grow {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -1,7 +1,7 @@
 """
 train_models.py
-Run this script to train all ML models from your dataset CSV and save them to models/
-Usage: python train_models.py --csv path/to/your_dataset.csv
+Run this script to train all ML models from the dataset CSV and save them to models/
+Usage: python train_models.py [--csv path/to/your_dataset.csv]
 """
 import os
 import argparse
@@ -14,6 +14,8 @@ from sklearn.naive_bayes import GaussianNB
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 from xgboost import XGBClassifier
 import joblib
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 FEATURES = [
     'WMC','DIT','NOC','CBO','RFC','LCOM','Ca','Ce','NPM','LOC',
@@ -30,12 +32,13 @@ def train(csv_path):
     models = {
         'random_forest': RandomForestClassifier(n_estimators=100, random_state=42),
         'knn': KNeighborsClassifier(n_neighbors=5),
-        'logistic_regression': LogisticRegression(max_iter=1000),
+        'logistic_regression': LogisticRegression(max_iter=5000),
         'naive_bayes': GaussianNB(),
-        'xgboost': XGBClassifier(use_label_encoder=False, eval_metric='logloss', random_state=42)
+        'xgboost': XGBClassifier(eval_metric='logloss', random_state=42)
     }
 
-    os.makedirs('models', exist_ok=True)
+    models_dir = os.path.join(BASE_DIR, 'models')
+    os.makedirs(models_dir, exist_ok=True)
     print(f"\n{'Model':<25} {'Acc':>7} {'Prec':>7} {'Rec':>7} {'F1':>7}")
     print("-" * 55)
 
@@ -47,12 +50,12 @@ def train(csv_path):
         rec = recall_score(y_test, pred)
         f1 = f1_score(y_test, pred)
         print(f"{name:<25} {acc:>7.4f} {prec:>7.4f} {rec:>7.4f} {f1:>7.4f}")
-        joblib.dump(model, f'models/{name}.pkl')
+        joblib.dump(model, os.path.join(models_dir, f'{name}.pkl'))
 
     print("\nAll models saved to models/")
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--csv', default='sample_bug_prediction - Copy.csv', help='Path to dataset CSV')
+    parser.add_argument('--csv', default=os.path.join(BASE_DIR, 'dataset.csv'), help='Path to dataset CSV')
     args = parser.parse_args()
     train(args.csv)
